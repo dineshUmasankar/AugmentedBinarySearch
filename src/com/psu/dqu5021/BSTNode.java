@@ -34,14 +34,21 @@ public class BSTNode {
 	 * @return the nth data value, from a sorted list  
 	 */
 	public static int get(BSTNode node, int n) {
+		if (node == null || n > node.treeSize)
+			return -1;
+		if (node.leftChild.treeSize == n)
+			return node.data;
+		else
+		{
 
+		}
 		// TODO: Implement this method 
 		return 0; 
 	}
 
 	/**
 	 * Search for a value
-	 * 
+	 *
 	 * @param node the root
 	 * @param x the target data value
 	 * 
@@ -95,6 +102,22 @@ public class BSTNode {
 		}
 	}
 
+	public static void updateTreeSizeDelete(BSTNode root, BSTNode upToThisNode)
+	{
+		BSTNode traversal = root;
+		while (traversal != upToThisNode)
+		{
+			if (traversal.data > upToThisNode.data) {
+				traversal.treeSize--;
+				traversal = traversal.LC();
+			}
+			else {
+				traversal.treeSize--;
+				traversal = traversal.RC();
+			}
+		}
+	}
+
 	/**
 	 * Insert a new value into the collection
 	 *  
@@ -104,7 +127,7 @@ public class BSTNode {
 	 * @return the root of the tree after the insertion
 	 */
 	public static BSTNode insert(BSTNode root, int data) {
-		// TODO: Change this method, as follows:
+
 		// A) Allow duplicate data values in the tree. If the data value already exists in 
 		//    the tree, increment the dataCount value.
 		// B) Increment the treeSize for all ancestors of the node,
@@ -163,13 +186,11 @@ public class BSTNode {
 	 * @return the root of the tree
 	 */
 	public static BSTNode delete(BSTNode root, int x) {
-		// TODO: Change this method, as follows:
+
 		// A) Find the node, and decrement the dataCount value.
 		// B) Only remove the node from the tree if the dataCount value is 0.
 		// C) Decrement the treeSize for all ancestors of the node,
 		//    to reflect the fact that a data value was removed from these subtrees
-
-		BSTNode checkNodeExists = find(root, x);
 
 		BSTNode node = root;
 		BSTNode parent = null;
@@ -186,27 +207,39 @@ public class BSTNode {
 		if (node == null) {
 			throw new IllegalArgumentException("Key " + x + " was not present in the tree.");
 		}
+		else
+		{
+			node.dataCount--;
+			node.treeSize--;
+			updateTreeSizeDelete(root, node);
 
-		if (node.leftChild == null && node.rightChild == null) {
-			// Case 1: the node containing x is a leaf
-			if (parent == null) root = null;
-			else if (node == parent.leftChild) parent.leftChild = null;
-			else parent.rightChild = null;
+			if ((node.leftChild == null && node.rightChild == null) && node.dataCount == 0) {
+				// Case 1: the node containing x is a leaf
+				if (parent == null) root = null;
+				else if (node == parent.leftChild) parent.leftChild = null;
+				else parent.rightChild = null;
+			}
+			else if ((node.leftChild == null || node.rightChild == null) && node.dataCount == 0) {
+				// Case 2: the node containing x has one child
+				BSTNode child = (node.leftChild != null) ? node.leftChild : node.rightChild;
+				if (parent == null) root = child;
+				else if (node == parent.leftChild) parent.leftChild = child;
+				else parent.rightChild = child;
+			}
+			else {
+				if (node.dataCount == 0)
+				{
+					// Case 3: node has two children
+					BSTNode predecessor = getLargestNode(node.leftChild);
+					node.data = predecessor.data;
+					node.dataCount = predecessor.dataCount();
+					predecessor.dataCount = 1;
+					node.leftChild = delete(node.leftChild, predecessor.data);
+
+				}
+			}
+			return root;
 		}
-		else if (node.leftChild == null || node.rightChild == null) {
-			// Case 2: the node containing x has one child
-			BSTNode child = (node.leftChild != null) ? node.leftChild : node.rightChild;
-			if (parent == null) root = child;
-			else if (node == parent.leftChild) parent.leftChild = child;
-			else parent.rightChild = child;
-		}
-		else {
-			// Case 3: node has two children
-			BSTNode predecessor = getLargestNode(node.leftChild);
-			node.data = predecessor.data;
-			node.leftChild = delete(node.leftChild, predecessor.data);
-		}
-		return root;
 	}
 
 
